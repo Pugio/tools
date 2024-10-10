@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Weather Dashboard</title>
+    <style>
+      /* Basic styling */
+      body {
+        font-family: Arial, sans-serif;
+        /* margin: 20px; */
+        /* width: 100vw; */
+        font-size: 14px;
+      }
+
+      .app {
+        display: flex;
+        justify-content: space-between;
+        flex-direction: column;
+      }
+
+      h1 {
+        text-align: center;
+      }
+      h2 {
+        margin: 0;
+      }
+
+      h2.current {
+        position: relative;
+      }
+      h2.current img {
+        position: absolute;
+        top: -10px;
+        left: -13px;
+      }
+
+      h2.current .temp {
+        margin-left: 30px;
+      }
+
+      h2 .weather-section {
+        margin-bottom: 40px;
+      }
+      .forecast {
+        display: flex;
+        flex-wrap: wrap;
+      }
+
+      .forecast-item {
+        flex: 0 0 auto;
+        /* margin-right: 20px; */
+        padding: 10px;
+        border: 1px solid #ccc;
+        position: relative;
+      }
+
+      .forecast-item.current {
+        background-color: aquamarine;
+      }
+
+      .weather-section p,
+      .forecast-item p {
+        margin: 0;
+      }
+
+      .icon {
+        position: absolute;
+        top: -11px;
+        right: -8px;
+      }
+
+      .ios-fullscreen #current-weather h2.current {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div class="weather">
+        <div class="weather-section" id="current-weather">
+          <h2>Current Weather</h2>
+          <!-- Current weather data will be displayed here -->
+        </div>
+
+        <div class="weather-section" id="minutely-forecast">
+          <h2>
+            Next hour <span class="minutely-hour"></span>
+            <span class="sparkline"></span>
+          </h2>
+        </div>
+
+        <div class="weather-section" id="hourly-forecast">
+          <h2>Today</h2>
+          <div class="forecast">
+            <!-- Hourly forecast data will be displayed here -->
+          </div>
+        </div>
+
+        <div class="weather-section" id="tomorrow-hourly">
+          <h2>Tomorrow</h2>
+          <div class="forecast">
+            <!-- Hourly forecast data will be displayed here -->
+          </div>
+        </div>
+
+        <div class="weather-section" id="daily-forecast">
+          <h2>Next Two Days Forecast</h2>
+          <div class="forecast">
+            <!-- Next two days forecast data will be displayed here -->
+          </div>
+        </div>
+
+        <button id="fullscreen-btn">Go Fullscreen</button>
+
+        <script>
+          document
+            .getElementById("fullscreen-btn")
+            .addEventListener("click", () => {
+              const docEl = document.documentElement;
+              if (
+                !document.fullscreenElement &&
+                !document.webkitFullscreenElement
+              ) {
+                (docEl.requestFullscreen || docEl.webkitRequestFullscreen).call(
+                  docEl
+                );
+                if (!docEl.requestFullscreen)
+                  document.body.classList.add("ios-fullscreen");
+              } else {
+                (document.exitFullscreen || document.webkitExitFullscreen).call(
+                  document
+                );
+                document.body.classList.remove("ios-fullscreen");
+              }
+            });
+        </script>
+      </div>
+      <div class="zmanim"></div>
+      <script>
+        async function getZmanim() {
+          const response = await fetch(
+            `https://www.hebcal.com/zmanim?cfg=json&geonameid=2167449` //elsternwick; 2158177` is // Geoname ID for Melbourne, Australia
+          );
+          const data = await response.json();
+          return data;
+        }
+
+        function formatTime(time) {
+          const date = new Date(time);
+          return date.toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        }
+
+        function displayZmanim(zmanim) {
+          const zmanimDiv = document.querySelector(".zmanim");
+          zmanimDiv.innerHTML = `
+          <h2>Zmanim</h2>
+          <table border-collapse: collapse;">
+            <tr>
+              <td style="text-align: right;"><strong>Alot HaShachar:</strong></td>
+              <td style="text-align: left;">${formatTime(
+                zmanim.times.alotHaShachar
+              )}</td>
+            </tr>
+            <tr>
+              <td style="text-align: right;"><strong>Sunrise:</strong></td>
+              <td style="text-align: left;">${formatTime(
+                zmanim.times.sunrise
+              )}</td>
+            </tr>
+            <tr>
+              <td style="text-align: right;"><strong>Sof Zman Shema:</strong></td>
+              <td style="text-align: left;">${formatTime(
+                zmanim.times.sofZmanShma
+              )}</td>
+            </tr>
+            <tr>
+              <td style="text-align: right;"><strong>Sof Zman Tefilah:</strong></td>
+              <td style="text-align: left;">${formatTime(
+                zmanim.times.sofZmanTfilla
+              )}</td>
+            </tr>
+            <tr>
+              <td style="text-align: right;"><strong>Chatzot:</strong></td>
+              <td style="text-align: left;">${formatTime(
+                zmanim.times.chatzot
+              )}</td>
+            </tr>
+            <tr>
+              <td style="text-align: right;"><strong>Mincha Gedola:</strong></td>
+              <td style="text-align: left;">${formatTime(
+                zmanim.times.minchaGedola
+              )}</td>
+            </tr>
+            <tr>
+              <td style="text-align: right;"><strong>Mincha Ketana:</strong></td>
+              <td style="text-align: left;">${formatTime(
+                zmanim.times.minchaKetana
+              )}</td>
+            </tr>
+            <tr>
+              <td style="text-align: right;"><strong>Plag HaMincha:</strong></td>
+              <td style="text-align: left;">${formatTime(
+                zmanim.times.plagHaMincha
+              )}</td>
+            </tr>
+            <tr>
+              <td style="text-align: right;"><strong>Sunset:</strong></td>
+              <td style="text-align: left;">${formatTime(
+                zmanim.times.sunset
+              )}</td>
+            </tr>
+            <tr>
+              <td style="text-align: right;"><strong>Tzeit HaKochavim:</strong></td>
+              <td style="text-align: left;">${formatTime(
+                zmanim.times.tzeit42min
+              )}</td>
+            </tr>
+          </table>
+        `;
+        }
+
+        async function updateZmanim() {
+          const zmanimData = await getZmanim();
+          displayZmanim(zmanimData);
+        }
+
+        // Initial call to update the zmanim
+        updateZmanim();
+
+        // Update the zmanim at the start of a new day
+        function scheduleZmanimUpdate() {
+          const now = new Date();
+          const nextUpdate = new Date(now);
+          nextUpdate.setHours(0, 0, 0, 0); // Set to midnight
+          nextUpdate.setDate(now.getDate() + 1); // Set to the next day
+
+          const timeUntilNextUpdate = nextUpdate - now;
+          setTimeout(() => {
+            updateZmanim();
+            scheduleZmanimUpdate(); // Schedule the next update
+          }, timeUntilNextUpdate);
+        }
+
+        // Initial call to schedule the zmanim update
+        scheduleZmanimUpdate();
+      </script>
+    </div>
+
+    <script>
+      // let apiKey = "8a9421b217b3a265526f28cc97d939d1"; // Replace with your OpenWeatherMap API key
+      let apiKey = localStorage.getItem("openWeatherAPIKey");
+      if (!apiKey) {
+        apiKey = prompt("Please enter your OpenWeatherMap API key:");
+        if (apiKey) {
+          localStorage.setItem("openWeatherAPIKey", apiKey);
+        } else {
+          alert("API key is required to fetch weather data.");
+          throw new Error("API key is required");
+        }
+      }
+      const locationName = "Melbourne, Australia, Elsternwick 3185";
+      const lat = -37.88493;
+      const lon = 145.00477;
+
+      // Fetch weather data using the One Call API
+      async function getWeatherData() {
+        const response = await fetch(
+          `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`
+        );
+        const data = await response.json();
+        return data;
+      }
+
+      // Update the current weather section
+      function displayCurrentWeather(current) {
+        const currentWeatherDiv = document.getElementById("current-weather");
+        currentWeatherDiv.innerHTML = `
+                <h2 class="current">
+                    <img src="http://openweathermap.org/img/wn/${current.weather[0].icon}.png" />
+                    <span class="temp">${current.temp}°C</span>
+                    💧${current.humidity}%
+                    💨${current.wind_speed} m/s
+                    ${current.weather[0].description}
+                </h2>
+            `;
+      }
+
+      function displayMinutelyForecast(minutely) {
+        // const minutelyForecastDiv = document.querySelector(
+        //   "#minutely-forecast .forecast"
+        // );
+        // minutelyForecastDiv.innerHTML = "";
+
+        const currentHour = new Date().getHours();
+        document.querySelector(".minutely-hour").textContent =
+          `${currentHour}:00` + " - " + `${currentHour + 1}:00`;
+
+        const sparklineData = minutely.map((minute) => minute.precipitation);
+        let sparkline = document.querySelector("canvas");
+        if (sparkline) {
+          sparkline
+            .getContext("2d")
+            .clearRect(0, 0, sparkline.width, sparkline.height);
+        } else {
+          sparkline = document.createElement("canvas");
+          document.querySelector(".sparkline").appendChild(sparkline);
+        }
+        const ctx = sparkline.getContext("2d");
+
+        // Set canvas dimensions
+        sparkline.width = 200;
+        sparkline.height = 30;
+
+        // Draw the sparkline
+        ctx.beginPath();
+        ctx.moveTo(0, sparkline.height - sparklineData[0]);
+        sparklineData.forEach((value, index) => {
+          const x = (index / (sparklineData.length - 1)) * sparkline.width;
+          const y = sparkline.height - value * (sparkline.height / 5);
+          ctx.lineTo(x, y);
+        });
+        ctx.strokeStyle = "#007bff";
+        ctx.stroke();
+
+        // Draw vertical lines
+        const drawVerticalLine = (x, height, color, text = "") => {
+          ctx.beginPath();
+          ctx.moveTo(x, sparkline.height);
+          ctx.lineTo(x, sparkline.height - height);
+          ctx.strokeStyle = color;
+          ctx.stroke();
+
+          if (text) {
+            ctx.fillStyle = color;
+            ctx.textAlign = "center";
+            ctx.fillText(text, x, sparkline.height - height - 5);
+          }
+        };
+
+        // Tall vertical line at the 30 minute mark
+        drawVerticalLine(
+          sparkline.width / 2,
+          sparkline.height - 12,
+          "#333333",
+          `${currentHour}:30`
+        );
+
+        // Smaller vertical lines at the 15 and 45 minute marks
+        drawVerticalLine(
+          sparkline.width / 4,
+          sparkline.height / 3,
+          "#333333",
+          `${currentHour}:15`
+        );
+        drawVerticalLine(
+          (sparkline.width / 4) * 3,
+          sparkline.height / 3,
+          "#333333",
+          `${currentHour}:45`
+        );
+      }
+
+      // Update the hourly forecast section
+      function displayHourlyForecast(hourly) {
+        const hourlyForecastDiv = document.querySelector(
+          "#hourly-forecast .forecast"
+        );
+        const tomorrowHourlyForecastDiv = document.querySelector(
+          "#tomorrow-hourly .forecast"
+        );
+        hourlyForecastDiv.innerHTML = "";
+        tomorrowHourlyForecastDiv.innerHTML = "";
+
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+
+        hourly.forEach((hour) => {
+          const hourDate = new Date(hour.dt * 1000);
+          const item = document.createElement("div");
+          item.className = "forecast-item";
+          item.innerHTML = `
+              <p><strong>${hourDate.getHours()}:00</strong><img class="icon" src="http://openweathermap.org/img/wn/${
+            hour.weather[0].icon
+          }.png" /></p>
+              <p>${hour.temp}°C</p>
+              <p>${hour.weather[0].description}</p>
+            `;
+
+          if (
+            hourDate.getHours() === today.getHours() &&
+            hourDate.getDate() === today.getDate()
+          ) {
+            item.classList.add("current");
+          }
+
+          if (hourDate.getDate() === today.getDate()) {
+            hourlyForecastDiv.appendChild(item);
+          } else if (hourDate.getDate() === tomorrow.getDate()) {
+            tomorrowHourlyForecastDiv.appendChild(item);
+          }
+        });
+      }
+
+      // Update the daily forecast section
+      function displayDailyForecast(daily) {
+        const dailyForecastDiv = document.querySelector(
+          "#daily-forecast .forecast"
+        );
+        dailyForecastDiv.innerHTML = "";
+        daily.slice(1, 3).forEach((day) => {
+          const dayDate = new Date(day.dt * 1000);
+          const item = document.createElement("div");
+          item.className = "forecast-item";
+          item.innerHTML = `
+                    <p><strong>${dayDate.toDateString()}</strong></p>
+                    <p>Max: ${day.temp.max}°C</p>
+                    <p>Min: ${day.temp.min}°C</p>
+                    <p>${day.weather[0].description}</p>
+                `;
+          dailyForecastDiv.appendChild(item);
+        });
+      }
+
+      // Main function to update the weather dashboard
+      async function updateWeather() {
+        // check localStorage for cached data
+        const cachedData = localStorage.getItem("weatherData");
+
+        let weatherData;
+        // if (cachedData) {
+        //   weatherData = JSON.parse(cachedData);
+        // } else {
+        weatherData = await getWeatherData();
+        // }
+        window.w = weatherData;
+
+        // cache in localStorage
+        localStorage.setItem("weatherData", JSON.stringify(weatherData));
+        displayCurrentWeather(weatherData.current);
+        displayMinutelyForecast(weatherData.minutely);
+        displayHourlyForecast(weatherData.hourly);
+        displayDailyForecast(weatherData.daily);
+      }
+
+      // Initial call to update the dashboard
+      updateWeather();
+
+      // Update the dashboard every 10 minutes
+      setInterval(updateWeather, 600000);
+    </script>
+  </body>
+</html>
